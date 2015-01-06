@@ -81,6 +81,15 @@ class bracket extends node {
     mContent.stdPrint();
     print(')');
   }
+  @Override
+  public void render() {
+    mRenderer = new text_renderer();
+    prepareRender().show();
+  }
+  @Override
+  public renderer prepareRender() {
+    return mRenderer.create_bracket(mContent);
+  }
 
   @Override
   public XML createXML() {
@@ -111,6 +120,15 @@ class multiply extends operator {
     mArg1.stdPrint();
     print('*');
     mArg2.stdPrint();
+  }
+  @Override
+  public void render() {
+    mRenderer = new text_renderer();
+    prepareRender().show();
+  }
+  @Override
+  public renderer prepareRender() {
+    return new text_renderer("*");
   }
   
   @Override
@@ -156,6 +174,16 @@ class divide extends operator {
     print('/');
     mArg2.stdPrint();
   }
+    @Override
+  public void render() {
+    mRenderer = new text_renderer();
+    prepareRender().show();
+  }
+  @Override
+  public renderer prepareRender() {
+    return mRenderer.create_fraction(mArg1, mArg2);
+  }
+  
   @Override
   public XML createXML() {
     // Create an XML element
@@ -207,6 +235,16 @@ class addition extends operator {
     print('+');
     mArg2.stdPrint();
   }
+    @Override
+  public void render() {
+    mRenderer = new text_renderer();
+    prepareRender().show();
+  }
+  @Override
+  public renderer prepareRender() {
+    return new text_renderer("+");
+  }
+  
   @Override
   public XML createXML() {
     // Create an XML element
@@ -267,6 +305,16 @@ class subtract extends operator {
     print('-');
     mArg2.stdPrint();
   }
+  @Override
+  public void render() {
+    mRenderer = new text_renderer();
+    prepareRender().show();
+  }
+  @Override
+  public renderer prepareRender() {
+    return new text_renderer("-");
+  }
+  
   @Override
   public XML createXML() {
     // Create an XML element

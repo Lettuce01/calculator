@@ -28,71 +28,9 @@ void setup() {
 //  formula.parse(String)
 //  
 
-class library {
-  private String mXMLFileName;
-  private String mTitle;
-  private ArrayList<formula> mFormulaList = new ArrayList<formula>();
-  
-  library() {
-    // New library. Boring
-  }
-  library(String title){
-    mTitle = title;
-  }
-  
-  public boolean loadLibrary(String XMLFileName) {
-    XML XMLLibrary = loadXML(XMLFileName);
-    if (XMLLibrary == null) {
-      // File not found
-      return false;
-    } else {
-      // File exists
-      if (XMLLibrary.hasAttribute("Title")) {
-        mTitle = XMLLibrary.getString("Title");
-      }
-      XML[] XMLFormulae = XMLLibrary.getChildren("Formula");
-      for (XML thisFormula : XMLFormulae) {
-        formula newFormula = new formula(thisFormula);
-        addFormula(newFormula);
-      }
-      mXMLFileName = XMLFileName;
-      return true;
-    }
-  }
-  public boolean saveLibrary() {
-    if (mXMLFileName != "") {
-      return saveLibrary(mXMLFileName);
-    }
-    return false;
-  }
-  public boolean saveLibrary(String XMLFileName) {
-    mXMLFileName = XMLFileName;
-    XML XMLFile = new XML("Library");
-    if (mTitle != "") {
-      XMLFile.setString("Title", mTitle);
-    }
-    for (formula thisFormula : mFormulaList) { 
-      XMLFile.addChild(thisFormula.createXML());
-    }
-    saveXML(XMLFile, mXMLFileName);
-    // Return true if save is successful (Should handle exceptions from saveXML()???)
-    return true;
-  }
-  public void addFormula (formula formulaToAdd) {
-    mFormulaList.add(formulaToAdd);
-  }
-  public void printLibrary() {
-    println("Library " + mTitle);
-    for (formula thisFormula : mFormulaList) {
-      print("  ");
-      thisFormula.stdPrint();
-    }
-  }  
-}
-  
-
 abstract class node {
-    
+  protected renderer mRenderer;
+  
   // Default behaviours:
   public node multiplyBy(node factor){
     return new multiply(factor, this);    
@@ -136,6 +74,9 @@ abstract class node {
   abstract void stdPrint();
   abstract XML createXML();
   abstract node passUpDenominators();
+  
+  abstract renderer prepareRender();
+  abstract void render();
   
 }
 
@@ -191,6 +132,16 @@ class formula extends node {
     mRHS.stdPrint();
     println();
   }
+  
+  @Override
+  public void render() {
+    mRenderer = new text_renderer();
+    prepareRender().show();
+  }
+  @Override
+  public renderer prepareRender() {
+    return mRenderer.create_formula(mLHS, mRHS);
+  } 
 
   @Override
   public XML createXML() {
@@ -278,7 +229,16 @@ class argument extends node {
   public void stdPrint() {
     print(mSymbol);
   }
-
+  @Override
+  public void render() {
+    mRenderer = new text_renderer();
+    prepareRender().show();
+  }
+  @Override
+  public renderer prepareRender() {
+    return new text_renderer(mSymbol);
+  }
+  
   @Override
   public XML createXML() {
     // Create an XML element
