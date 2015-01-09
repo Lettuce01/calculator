@@ -81,15 +81,6 @@ class bracket extends node {
     mContent.stdPrint();
     print(')');
   }
-  @Override
-  public void render() {
-    mRenderer = new text_renderer();
-    prepareRender().show();
-  }
-  @Override
-  public renderer prepareRender() {
-    return mRenderer.create_bracket(mContent);
-  }
 
   @Override
   public XML createXML() {
@@ -105,6 +96,12 @@ class bracket extends node {
   public node passUpDenominators(){
     return mContent.passUpDenominators();
   }
+  
+  @Override
+  public renderer prepareRender(renderer r) {
+    return r.create(RTYPE.BRACKET, mContent.prepareRender(r));
+  } 
+  
 }
 
 class multiply extends operator {
@@ -120,15 +117,6 @@ class multiply extends operator {
     mArg1.stdPrint();
     print('*');
     mArg2.stdPrint();
-  }
-  @Override
-  public void render() {
-    mRenderer = new text_renderer();
-    prepareRender().show();
-  }
-  @Override
-  public renderer prepareRender() {
-    return new text_renderer("*");
   }
   
   @Override
@@ -158,6 +146,12 @@ class multiply extends operator {
       return null;
     }
   }
+  
+  @Override
+  public renderer prepareRender(renderer r) {
+    return r.create(RTYPE.TIMES, mArg1.prepareRender(r), mArg2.prepareRender(r));
+  } 
+  
 }
 
 class divide extends operator {
@@ -173,15 +167,6 @@ class divide extends operator {
     mArg1.stdPrint();
     print('/');
     mArg2.stdPrint();
-  }
-    @Override
-  public void render() {
-    mRenderer = new text_renderer();
-    prepareRender().show();
-  }
-  @Override
-  public renderer prepareRender() {
-    return mRenderer.create_fraction(mArg1, mArg2);
   }
   
   @Override
@@ -218,6 +203,12 @@ class divide extends operator {
     mArg2 = new argument("1", "1", 1.0);
     return retval;
   }
+  
+  @Override
+  public renderer prepareRender(renderer r) {
+    return r.create(RTYPE.DIVIDE, mArg1.prepareRender(r), mArg2.prepareRender(r));
+  } 
+  
 }
 
 
@@ -234,15 +225,6 @@ class addition extends operator {
     mArg1.stdPrint();
     print('+');
     mArg2.stdPrint();
-  }
-    @Override
-  public void render() {
-    mRenderer = new text_renderer();
-    prepareRender().show();
-  }
-  @Override
-  public renderer prepareRender() {
-    return new text_renderer("+");
   }
   
   @Override
@@ -289,6 +271,12 @@ class addition extends operator {
       return null;
     }
   }
+  
+  @Override
+  public renderer prepareRender(renderer r) {
+    return r.create(RTYPE.PLUS, mArg1.prepareRender(r), mArg2.prepareRender(r));
+  } 
+  
 }
 
 class subtract extends operator {
@@ -304,15 +292,6 @@ class subtract extends operator {
     mArg1.stdPrint();
     print('-');
     mArg2.stdPrint();
-  }
-  @Override
-  public void render() {
-    mRenderer = new text_renderer();
-    prepareRender().show();
-  }
-  @Override
-  public renderer prepareRender() {
-    return new text_renderer("-");
   }
   
   @Override
@@ -359,6 +338,12 @@ class subtract extends operator {
       return null;
     }
   }
+  
+  @Override
+  public renderer prepareRender(renderer r) {
+    return r.create(RTYPE.MINUS, mArg1.prepareRender(r), mArg2.prepareRender(r));
+  } 
+  
 }
 
 

@@ -3,15 +3,18 @@ void setup() {
   node scalar = new argument("x", "units");
   //ohmsLaw.multiplyBy(scalar);
   ohmsLaw.stdPrint();
+  ohmsLaw.render();
   
   formula test = new formula(new divide(new subtract(new argument("A", "a"), new argument("B", "b")), new argument("C", "c")), new addition(new argument("D", "d"), new argument("E", "e")));
   test.multiplyBy(scalar);
   test.stdPrint();
+  test.render();
   
   formula test2 = new formula(new divide(new subtract(new argument("A", "a"), new argument("B", "b")), new argument("C", "c")), new bracket(new addition(new argument("D", "d"), new argument("E", "e"))));
   test2.multiplyBy(scalar);
   test2.stdPrint();
-  
+  test2.render();
+/*  
   library MyLibrary = new library("Craig's Library");
   MyLibrary.addFormula(ohmsLaw);
   MyLibrary.addFormula(test);
@@ -22,30 +25,32 @@ void setup() {
   library LoadLibrary = new library();
   println("Result = " + LoadLibrary.loadLibrary("TestXML.xml"));
   LoadLibrary.printLibrary();
-  
+*/  
 }
 
 //  formula.parse(String)
 //  
 
+
+// -------------------------------------------------- node (abstract)
 abstract class node {
   protected renderer mRenderer;
   
   // Default behaviours:
-  public node multiplyBy(node factor){
+  public node multiplyBy(node factor){             // node:multiplyBy
     return new multiply(factor, this);    
   }
-  public node divideBy(node factor){
+  public node divideBy(node factor){               // node:divideBy
     return new divide(this, factor);
   }
-  public node addOn(node addend){
+  public node addOn(node addend){                  // node:addOn
     return new addition(this, addend);
   }
-  public node subtract(node subend){
+  public node subtract(node subend){               // node:subtract
     return new subtract(this, subend);
   }
   
-  public node create(XML XMLNode) {
+  public node create(XML XMLNode) {                // node:create
     node newNode;
     String nodeType = XMLNode.getName();
     if (nodeType == "#text") {
@@ -71,25 +76,32 @@ abstract class node {
   }
   
   // Interface to be implemented by each subclass
-  abstract void stdPrint();
-  abstract XML createXML();
-  abstract node passUpDenominators();
+  abstract void stdPrint();                        // node:stdPrint (abstract)
+  abstract XML createXML();                        // node:createXML (abstract)
+  abstract node passUpDenominators();              // node:passUpDenominators (abstract)
   
-  abstract renderer prepareRender();
-  abstract void render();
+  public void render() {                           // node:render
+    if (mRenderer == null) {
+      // Default renderer is the text_renderer
+      mRenderer = new text_renderer();
+    }
+    prepareRender(mRenderer).render();
+  }
+  abstract public renderer prepareRender(renderer r);    // node:prepareRender (abstract)
   
 }
 
+// -------------------------------------------------- formula
 class formula extends node {
   // Should formula extend node?? Or just contain them??
   private node mLHS;
   private node mRHS;
  
-  formula(node LHS, node RHS) {
+  formula(node LHS, node RHS) {                    // formula:constructor
     mLHS = LHS;
     mRHS = RHS;
   }
-  formula(XML XMLFormula) {
+  formula(XML XMLFormula) {                        // formula:constructor
     mLHS = null;
     mRHS = null;
     int nodeCount = 0;
@@ -126,25 +138,15 @@ class formula extends node {
   }
 
   @Override
-  public void stdPrint() {
+  public void stdPrint() {                         // formula:stdPrint
     mLHS.stdPrint();
     print('=');
     mRHS.stdPrint();
     println();
   }
-  
-  @Override
-  public void render() {
-    mRenderer = new text_renderer();
-    prepareRender().show();
-  }
-  @Override
-  public renderer prepareRender() {
-    return mRenderer.create_formula(mLHS, mRHS);
-  } 
 
   @Override
-  public XML createXML() {
+  public XML createXML() {                         // formula:createXML
     // Create an XML element
     XML element = new XML("Formula");
     // Add name and other details via formula.setString("Name", formulaName);
@@ -157,32 +159,32 @@ class formula extends node {
 
   // formula applies modifications to both sides, to maintain equality
   @Override
-  public node multiplyBy(node factor){
+  public node multiplyBy(node factor){             // formula:multiplyBy
     mLHS = mLHS.multiplyBy(factor);
     mRHS = mRHS.multiplyBy(factor);
     return this;
   }
   @Override
-  public node divideBy(node factor){
+  public node divideBy(node factor){               // formula:divideBy
     mLHS = mLHS.divideBy(factor);
     mRHS = mRHS.divideBy(factor);
     return this;
   }
   @Override
-  public node addOn(node addend){
+  public node addOn(node addend){                  // formula:addOn
     mLHS = mLHS.addOn(addend);
     mRHS = mRHS.addOn(addend);
     return this;
   }
   @Override
-  public node subtract(node subend){
+  public node subtract(node subend){               // formula:subtract
     mLHS = mLHS.subtract(subend);
     mRHS = mRHS.subtract(subend);
     return this;
   }
   
   @Override
-  public node passUpDenominators() {
+  public node passUpDenominators() {               // formula:passUpDenominators
     node LHSDenominators = mLHS.passUpDenominators();
     node RHSDenominators = mRHS.passUpDenominators();
     if (LHSDenominators != null){
@@ -193,28 +195,34 @@ class formula extends node {
     }
     return null;
   }
+  
+  @Override
+  public renderer prepareRender(renderer r) {        // formula:prepareRender
+    return r.create(RTYPE.EQUATE, mLHS.prepareRender(r), mRHS.prepareRender(r));
+  } 
+  
 }
 
 
-
+// -------------------------------------------------- argument
 class argument extends node {
   private String mSymbol;
   private String mUnits;
   private boolean mValueKnown = false;
   private float mValue;
   
-  argument(String symbol, String unit) {
+  argument(String symbol, String unit) {           // argument:contructor
     mSymbol = symbol;
     mUnits = unit;
     mValueKnown = false;
   }
-  argument(String symbol, String unit, float value) {
+  argument(String symbol, String unit, float value) {      // argument:constructor
     mSymbol = symbol;
     mUnits = unit;
     mValue = value;
     mValueKnown = true;
   }
-  argument(XML XMLFunction) {
+  argument(XML XMLFunction) {                      // argument:constructor
     mSymbol = XMLFunction.getString("Symbol", "@");
     mUnits = XMLFunction.getString("Units", "");
     if (XMLFunction.hasAttribute("Value")) {
@@ -226,21 +234,12 @@ class argument extends node {
   }
   
   @Override
-  public void stdPrint() {
+  public void stdPrint() {                         // argument:stdPrint
     print(mSymbol);
-  }
-  @Override
-  public void render() {
-    mRenderer = new text_renderer();
-    prepareRender().show();
-  }
-  @Override
-  public renderer prepareRender() {
-    return new text_renderer(mSymbol);
   }
   
   @Override
-  public XML createXML() {
+  public XML createXML() {                         // argument:createXML
     // Create an XML element
     XML element = new XML("Argument");
     // Add details
@@ -254,10 +253,14 @@ class argument extends node {
   }
 
   @Override
-  public node passUpDenominators(){
+  public node passUpDenominators(){                // argument:passUpDenominator
     return null;
   }
   
+  @Override
+  public renderer prepareRender(renderer r) {      // argument:prepareRender
+    return r.create(RTYPE.VALUE, mSymbol);
+  } 
 
 }
 
