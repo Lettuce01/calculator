@@ -13,6 +13,7 @@ void setup() {
   formula test2 = new formula(new divide(new subtract(new argument("A", "a"), new argument("B", "b")), new argument("C", "c")), new bracket(new addition(new argument("D", "d"), new argument("E", "e"))));
   test2.multiplyBy(scalar);
   test2.stdPrint();
+  test2.setRenderer(new graphic_renderer());
   test2.render();
 /*  
   library MyLibrary = new library("Craig's Library");
@@ -80,6 +81,9 @@ abstract class node {
   abstract XML createXML();                        // node:createXML (abstract)
   abstract node passUpDenominators();              // node:passUpDenominators (abstract)
   
+  public void setRenderer(renderer r) {            // node:setRenderer
+    mRenderer = r;
+  }
   public void render() {                           // node:render
     if (mRenderer == null) {
       // Default renderer is the text_renderer
@@ -88,6 +92,7 @@ abstract class node {
     prepareRender(mRenderer).render();
   }
   abstract public renderer prepareRender(renderer r);    // node:prepareRender (abstract)
+  
   
 }
 
