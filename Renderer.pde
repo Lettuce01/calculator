@@ -30,10 +30,6 @@ class text_renderer extends renderer {
   text_renderer(String text) {
     mText = text;
   }
-  
-  protected String getText() {
-    return mText;
-  }
 
   @Override
   public renderer create(int rType, String value) {
@@ -57,21 +53,6 @@ class text_renderer extends renderer {
       print(" ~ TYPE MISMATCH (BRACKET) ~ ");
       return this;
     }
-    /*
-    String retVal;
-    text_renderer castArg = (text_renderer) arg;
-    switch (rType) {
-      case RTYPE.VALUE:
-        retVal = castArg.getText();
-        break;
-      case RTYPE.BRACKET:
-        retVal = "(" + castArg.getText() + ")";
-        break;
-      default:
-        retVal = "* Too few arguments *";
-    }
-    return new text_renderer(retVal);
-    */
   }
   @Override
   public renderer create(int rType, renderer arg1, renderer arg2) {
@@ -112,36 +93,6 @@ class text_renderer extends renderer {
       print(" ~ TYPE MISMATCH (DUAL) ~ ");
       return this;
     }
-    /*
-    // create dual argument objects
-    String retVal;
-    text_renderer castArg1 = (text_renderer) arg1;
-    text_renderer castArg2 = (text_renderer) arg2;
-    switch (rType) {
-      case RTYPE.EQUATE:
-        retVal = "=";
-        break;
-      case RTYPE.MINUS:
-        retVal = "-";
-        break;
-      case RTYPE.PLUS:
-        retVal = "+";
-        break;
-      case RTYPE.TIMES:
-        retVal = "*";
-        break;
-      case RTYPE.DIVIDE:
-        retVal = "/";
-        break;
-      case RTYPE.EXPONENT:
-        retVal = "^";
-        break;
-      default:
-        retVal = " ~ Unknown Operator ~ ";
-    }
-    retVal = castArg1.getText() + retVal + castArg2.getText();
-    return new text_renderer(retVal);
-    */
   }
   
   @Override
@@ -177,8 +128,8 @@ class text_renderer extends renderer {
 //-------------------------------------------------- graphic_renderer  
 class graphic_renderer extends renderer {
   private String mText;
-  //private int mXSize;
-  //private int mYSize;
+  protected float mXSize;
+  protected float mYSize;
   
   graphic_renderer() {
     mText = "";
@@ -186,67 +137,110 @@ class graphic_renderer extends renderer {
   graphic_renderer(String text) {
     mText = text;
   }
-  
-  protected String getText() {
-    return mText;
-  }
 
   @Override
   public renderer create(int rType, String value) {
-    return new graphic_renderer(value);
+    if (rType == RTYPE.VALUE) {
+      graphic_renderer new_renderer = new graphic_renderer(value);
+      new_renderer.mRType = rType;
+      new_renderer.mXSize = textWidth(value);
+      new_renderer.mYSize = 10;                  // Arbitrary. We need a global (for the class) text size (height) that gets specified...
+      return new_renderer;
+    } else {
+      print(" ~ TYPE MISMATCH (VALUE) ~ ");
+      return this;
+    }
   }
   @Override
   public renderer create(int rType, renderer arg) {
-    // Create single argument objects
-    String retVal;
-    graphic_renderer castArg = (graphic_renderer) arg;
-    switch (rType) {
-      case RTYPE.VALUE:
-        retVal = castArg.getText();
-        break;
-      case RTYPE.BRACKET:
-        retVal = "(" + castArg.getText() + ")";
-        break;
-      default:
-        retVal = "* Too few arguments *";
+    if (rType == RTYPE.BRACKET) {
+      graphic_renderer new_renderer = new graphic_renderer();
+      graphic_renderer castArg = (graphic_renderer) arg;
+      new_renderer.mRType = rType;
+      new_renderer.mChild1 = castArg;
+      new_renderer.mXSize = castArg.mXSize + textWidth("()");
+      new_renderer.mYSize = castArg.mYSize;
+      return new_renderer;
+    } else {
+      print(" ~ TYPE MISMATCH (BRACKET) ~ ");
+      return this;
     }
-    return new graphic_renderer(retVal);
   }
   @Override
   public renderer create(int rType, renderer arg1, renderer arg2) {
-    // create dual argument objects
-    String retVal;
-    graphic_renderer castArg1 = (graphic_renderer) arg1;
-    graphic_renderer castArg2 = (graphic_renderer) arg2;
-    switch (rType) {
-      case RTYPE.EQUATE:
-        retVal = "=";
-        break;
-      case RTYPE.MINUS:
-        retVal = "-";
-        break;
-      case RTYPE.PLUS:
-        retVal = "+";
-        break;
-      case RTYPE.TIMES:
-        retVal = "*";
-        break;
-      case RTYPE.DIVIDE:
-        retVal = "/";
-        break;
-      case RTYPE.EXPONENT:
-        retVal = "^";
-        break;
-      default:
-        retVal = " ~ Unknown Operator ~ ";
+    if ((rType == RTYPE.EQUATE) ||
+        (rType == RTYPE.MINUS) ||
+        (rType == RTYPE.PLUS) ||
+        (rType == RTYPE.TIMES) ||
+        (rType == RTYPE.DIVIDE) ||
+        (rType == RTYPE.EXPONENT)) {
+      graphic_renderer new_renderer = new graphic_renderer();
+      graphic_renderer castArg1 = (graphic_renderer) arg1;
+      graphic_renderer castArg2 = (graphic_renderer) arg2;
+      new_renderer.mRType = rType;
+      new_renderer.mChild1 = castArg1;
+      new_renderer.mChild2 = castArg2;
+      switch (rType) {
+        case RTYPE.EQUATE:
+          new_renderer.mText = "=";
+          break;
+        case RTYPE.MINUS:
+          new_renderer.mText = "-";
+          break;
+        case RTYPE.PLUS:
+          new_renderer.mText = "+";
+          break;
+        case RTYPE.TIMES:
+          new_renderer.mText = "*";
+          break;
+        case RTYPE.DIVIDE:
+          new_renderer.mText = "/";
+          break;
+        case RTYPE.EXPONENT:
+          new_renderer.mText = "^";
+          break;
+        default:
+          new_renderer.mText = "?";
+      }
+      new_renderer.mXSize = castArg1.mXSize + textWidth(new_renderer.mText) + castArg2.mXSize;
+      return new_renderer;
+    } else {
+      print(" ~ TYPE MISMATCH (DUAL) ~ ");
+      return this;
     }
-    retVal = castArg1.getText() + retVal + castArg2.getText();
-    return new graphic_renderer(retVal);
   }
   
   @Override
   public void render() {
-    text(mText, 10, 10);
+    render(10, 10);
+  }
+  
+  protected void render (float x, float y) {
+    switch(mRType) {
+      case RTYPE.VALUE:
+        text(mText, x, y);
+        break;
+      case RTYPE.BRACKET:
+        text("(", x, y);
+        graphic_renderer castChild = (graphic_renderer) mChild1;
+        castChild.render(x + textWidth("("), y);
+        text(")", x + textWidth("(") + castChild.mXSize, y);
+        break;
+      case RTYPE.EQUATE:
+      case RTYPE.MINUS:
+      case RTYPE.PLUS:
+      case RTYPE.TIMES:
+      case RTYPE.DIVIDE:
+      case RTYPE.EXPONENT:
+        graphic_renderer castChild1 = (graphic_renderer) mChild1;
+        graphic_renderer castChild2 = (graphic_renderer) mChild2;
+        castChild1.render(x, y);
+        text(mText, x + castChild1.mXSize, y);
+        castChild2.render(x + castChild1.mXSize + textWidth(mText), y);
+        break;
+      default:
+        print(" ~ Unknown Operator Type ~ ");
+    }
   }
   
 }
