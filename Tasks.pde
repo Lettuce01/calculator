@@ -12,7 +12,6 @@
  
 /* Basic tasks
  *
- * / Write out a formula as text
  * Parse a formula from text
  */
  

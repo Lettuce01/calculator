@@ -126,15 +126,34 @@ class formula extends node {
   // Should formula extend node?? Or just contain them??
   private node mLHS;
   private node mRHS;
+  private String mTitle = "";
+  private String mDescription = "";
  
   formula(node LHS, node RHS) {                    // formula:constructor
     mLHS = LHS;
     mRHS = RHS;
   }
+  formula(String title, node LHS, node RHS) {      // formula:constructor
+    mTitle = title;
+    mLHS = LHS;
+    mRHS = RHS;
+  }
+  formula(String title, node LHS, node RHS, String description) {    // formula:constructor
+    mTitle = title;
+    mLHS = LHS;
+    mRHS = RHS;
+    mDescription = description;
+  }
   formula(XML XMLFormula) {                        // formula:constructor
     mLHS = null;
     mRHS = null;
     int nodeCount = 0;
+    if (XMLFormula.hasAttribute("Title")) {
+      mTitle = XMLFormula.getString("Title");
+    }
+    if (XMLFormula.hasAttribute("Description")) {
+      mDescription = XMLFormula.getString("Description");
+    }
     XML[] XMLNodes = XMLFormula.getChildren();
     for (XML thisNode: XMLNodes) {
       node newNode = create(thisNode);
@@ -175,11 +194,18 @@ class formula extends node {
     println();
   }
 
+  public String getTitle() { return mTitle; }
+  public void setTitle(String title) { mTitle = title; }
+  public String getDesc() { return mDescription; }
+  public void setDesc(String description) { mDescription = description; } 
+
   @Override
   public XML createXML() {                         // formula:createXML
     // Create an XML element
     XML element = new XML("Formula");
-    // Add name and other details via formula.setString("Name", formulaName);
+    // Add name and other details
+    element.setString("Title", mTitle);
+    element.setString("Description", mDescription);
     // Create and add children
     element.addChild(mLHS.createXML());
     element.addChild(mRHS.createXML());

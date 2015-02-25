@@ -51,9 +51,27 @@ class library {
   public void addFormula (formula formulaToAdd) {
     mFormulaList.add(formulaToAdd);
   }
+  public formula getFormula (int index) {
+    if (index >= mFormulaList.size()) {
+      println ("Index does not exist in library");
+    } else {
+      return mFormulaList.get(index);
+    }
+    return null;
+  }
   public void printLibrary() {
     println("Library " + mTitle);
     for (formula thisFormula : mFormulaList) {
+      String title = thisFormula.getTitle();
+      if (title != "") {
+        println("  " + title);
+        print("  ");
+        String description = thisFormula.getDesc();
+        if (description != "") {
+          println("  " + description);
+          print("    ");
+        }
+      }
       print("  ");
       thisFormula.stdPrint();
     }
